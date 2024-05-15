@@ -4,24 +4,24 @@ using UnityEngine.Pool;
 
 public class CubePool : MonoBehaviour
 {
-    [SerializeField] private GameObject _prefab;
+    [SerializeField] private Cube _cubePrefab;
     [SerializeField] private Transform _startPosition;
     [SerializeField] private float _startRadius;
     [SerializeField] private float _repeatRate;
     [SerializeField] private int _poolCapacity;
     [SerializeField] private int _poolMaxSize;
 
-    private ObjectPool<GameObject> _pool;
+    private ObjectPool<Cube> _pool;
     private float maxLifeTime = 5f;
     private float minLifeTime = 2f;
 
     private void Awake()
     {
-        _pool = new ObjectPool<GameObject>(
-        createFunc: () => Instantiate(_prefab),
-        actionOnGet: (obj) => ActionOnGet(obj),
-        actionOnRelease: (obj) => ActionOnRelease(obj),
-        actionOnDestroy: (obj) => Destroy(obj),
+        _pool = new ObjectPool<Cube>(
+        createFunc: () => Instantiate(_cubePrefab),
+        actionOnGet: (cube) => Activate(cube),
+        actionOnRelease: (cube) => Deactivate(cube),
+        actionOnDestroy: (cube) => Destroy(cube),
         collectionCheck: true,
         defaultCapacity: _poolCapacity,
         maxSize: _poolMaxSize);
@@ -38,20 +38,19 @@ public class CubePool : MonoBehaviour
         return new Vector3(randomPositionXZ.x, transform.position.y, randomPositionXZ.z);
     }
 
-    private void ActionOnGet(GameObject obj)
+    private void Activate(Cube cube)
     {
-        obj.transform.position = GetRandomPositionXZ();
-        obj.GetComponent<Cube>().EnteredPlatform += Deactivate;
-        obj.SetActive(true);
+        cube.transform.position = GetRandomPositionXZ();
+        cube.EnteredPlatform += SetDeactivationTime;
+        cube.gameObject.SetActive(true);
     }
 
-    private void ActionOnRelease(GameObject obj)
+    private void Deactivate(Cube cube)
     {
-        Cube cube = obj.GetComponent<Cube>();
         cube.Reset();
-        cube.EnteredPlatform -= Deactivate;
-        obj.transform.position = this.transform.position;
-        obj.SetActive(false);
+        cube.transform.position = transform.position;
+        cube.EnteredPlatform -= SetDeactivationTime;
+        cube.gameObject.SetActive(false);
     }
 
     private void GetCube()
@@ -59,7 +58,7 @@ public class CubePool : MonoBehaviour
         _pool.Get();
     }
 
-    private void Deactivate(Cube cube)
+    private void SetDeactivationTime(Cube cube)
     {
         float lifeTime = Random.Range(minLifeTime, maxLifeTime);
         StartCoroutine(DeactivateRoutine(lifeTime, cube));
@@ -69,6 +68,6 @@ public class CubePool : MonoBehaviour
     {
         yield return new WaitForSeconds(seconds);
 
-        ActionOnRelease(cube.gameObject);
+        Deactivate(cube);
     }
 }

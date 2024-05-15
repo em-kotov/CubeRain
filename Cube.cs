@@ -1,49 +1,34 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-[RequireComponent(typeof(Renderer))]
-[RequireComponent(typeof(Rigidbody))]
-
+[RequireComponent(typeof(Renderer), typeof(Rigidbody))]
 public class Cube : MonoBehaviour
 {
-    private Platform _lastPlatform = null;
     private Color _defaultColor;
+    private bool _hasEnteredPlatform = false;
 
     public event UnityAction<Cube> EnteredPlatform;
 
-    public Platform LastPlatform => _lastPlatform;
-
     private void Start()
     {
-        _defaultColor = this.GetComponent<Renderer>().material.color;
+        _defaultColor = GetComponent<Renderer>().material.color;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        GameObject obj = collision.gameObject;
-
-        if (obj.GetComponent<Platform>() == false)
-            return;
-
-        Platform platform = obj.GetComponent<Platform>();
-
-        if (platform == _lastPlatform)
-            return;
-
-        SetPlatform(platform);
-        SetColor();
-        EnteredPlatform?.Invoke(this);
+        if (collision.gameObject.TryGetComponent(out Platform platform) &&
+            _hasEnteredPlatform == false)
+        {
+            SetColor();
+            _hasEnteredPlatform = true;
+            EnteredPlatform?.Invoke(this);
+        }
     }
 
     public void Reset()
     {
         GetComponent<Renderer>().material.color = _defaultColor;
-        _lastPlatform = null;
-    }
-
-    private void SetPlatform(Platform platform)
-    {
-        _lastPlatform = platform;
+        _hasEnteredPlatform = false;
     }
 
     private void SetColor()
