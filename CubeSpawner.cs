@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Pool;
 
-public class CubePool : MonoBehaviour
+public class CubeSpawner : MonoBehaviour
 {
     [SerializeField] private Cube _cubePrefab;
     [SerializeField] private Transform _startPosition;
@@ -29,7 +29,7 @@ public class CubePool : MonoBehaviour
 
     private void Start()
     {
-        InvokeRepeating(nameof(GetCube), 0.0f, _repeatRate);
+        StartCoroutine(SpawnCubes(_repeatRate));
     }
 
     private Vector3 GetRandomPositionXZ()
@@ -69,5 +69,16 @@ public class CubePool : MonoBehaviour
         yield return new WaitForSeconds(seconds);
 
         Deactivate(cube);
+    }
+
+    private IEnumerator SpawnCubes(float seconds)
+    {
+        var wait = new WaitForSeconds(seconds);
+
+        while (enabled)
+        {
+            GetCube();
+            yield return wait;
+        }
     }
 }

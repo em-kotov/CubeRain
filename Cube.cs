@@ -4,6 +4,7 @@ using UnityEngine.Events;
 [RequireComponent(typeof(Renderer), typeof(Rigidbody))]
 public class Cube : MonoBehaviour
 {
+    private Renderer _renderer;
     private Color _defaultColor;
     private bool _hasEnteredPlatform = false;
 
@@ -11,7 +12,8 @@ public class Cube : MonoBehaviour
 
     private void Start()
     {
-        _defaultColor = GetComponent<Renderer>().material.color;
+        _renderer = GetComponent<Renderer>();
+        _defaultColor = _renderer.material.color;
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -27,12 +29,13 @@ public class Cube : MonoBehaviour
 
     public void Reset()
     {
-        GetComponent<Renderer>().material.color = _defaultColor;
+        _renderer.material.color = _defaultColor;
+        _renderer = null;
         _hasEnteredPlatform = false;
     }
 
     private void SetColor()
     {
-        GetComponent<Renderer>().material.color = Random.ColorHSV(0f, 1f, 0.3f, 0.3f, 0.95f, 0.95f);
+        _renderer.material.color = Random.ColorHSV(0f, 1f, 0.3f, 0.3f, 0.95f, 0.95f);
     }
 }
